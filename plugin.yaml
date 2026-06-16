@@ -1,0 +1,8 @@
+name: cortex_scout
+title: Cortex Scout
+description: Agent Zero tool bridge for a running Cortex Scout HTTP/MCP server.
+version: 1.0.0
+settings_sections:
+  - agent
+per_project_config: true
+per_agent_config: true

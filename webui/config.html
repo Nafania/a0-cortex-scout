@@ -1,0 +1,53 @@
+<html>
+<head>
+    <title>Cortex Scout</title>
+</head>
+<body>
+    <div x-data>
+        <template x-if="config">
+            <div>
+                <div class="section-title">Cortex Scout</div>
+                <div class="section-description">
+                    Connect Agent Zero to a running Cortex Scout HTTP server.
+                </div>
+
+                <div class="field">
+                    <div class="field-label">
+                        <div class="field-title">Base URL</div>
+                        <div class="field-description">
+                            Cortex Scout HTTP server URL.
+                        </div>
+                    </div>
+                    <div class="field-control">
+                        <input type="text" x-model="config.base_url" />
+                    </div>
+                </div>
+
+                <div class="field">
+                    <div class="field-label">
+                        <div class="field-title">Timeout Seconds</div>
+                        <div class="field-description">
+                            Per-request HTTP timeout.
+                        </div>
+                    </div>
+                    <div class="field-control">
+                        <input type="number" min="1" step="1" x-model.number="config.timeout_seconds" />
+                    </div>
+                </div>
+
+                <div class="field">
+                    <div class="field-label">
+                        <div class="field-title">Max Response Chars</div>
+                        <div class="field-description">
+                            Maximum response size returned to the agent.
+                        </div>
+                    </div>
+                    <div class="field-control">
+                        <input type="number" min="1000" step="1000" x-model.number="config.max_response_chars" />
+                    </div>
+                </div>
+            </div>
+        </template>
+    </div>
+</body>
+</html>
