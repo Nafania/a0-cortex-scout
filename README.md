@@ -12,9 +12,9 @@ Copy this folder to:
 
 Enable the plugin in Agent Zero.
 
-On first use the plugin downloads the matching Cortex Scout release binary into
-`bin/`, verifies its SHA-256 checksum, starts it on `127.0.0.1:5055`, and keeps
-it alive for the Agent Zero process.
+On install, Agent Zero startup, and first tool use, the plugin downloads the
+matching Cortex Scout release binary into `bin/`, verifies its SHA-256 checksum,
+starts it on `127.0.0.1:5055`, and keeps it alive for the Agent Zero process.
 
 No Docker Compose and no Rust build are required.
 
