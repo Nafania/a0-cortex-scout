@@ -54,7 +54,10 @@ class CortexScoutClient:
             with request.urlopen(req, timeout=self.timeout_seconds) as resp:
                 raw = resp.read()
         except error.HTTPError as exc:
-            body = exc.read(1000).decode("utf-8", "replace")
+            try:
+                body = exc.read(1000).decode("utf-8", "replace")
+            finally:
+                exc.close()
             raise CortexScoutError(f"HTTP {exc.code} {url}: {body}") from exc
         except error.URLError as exc:
             raise CortexScoutError(f"Cannot reach {url}: {exc.reason}") from exc

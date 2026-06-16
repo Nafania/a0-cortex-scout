@@ -122,15 +122,19 @@ def _install_binary(config: dict) -> Path:
         url = f"{DEFAULT_RELEASE_BASE}/{version}/{asset}"
 
     expected_sha = str(config.get("binary_sha256") or CHECKSUMS.get(asset, ""))
+    if not expected_sha:
+        raise CortexScoutError(
+            f"No checksum configured for Cortex Scout asset {asset}; set binary_sha256."
+        )
+
     with tempfile.TemporaryDirectory() as tmp:
         archive = Path(tmp) / asset
         _download(url, archive)
-        if expected_sha:
-            digest = _sha256(archive)
-            if digest != expected_sha:
-                raise CortexScoutError(
-                    f"Cortex Scout binary checksum mismatch: expected {expected_sha}, got {digest}"
-                )
+        digest = _sha256(archive)
+        if digest != expected_sha:
+            raise CortexScoutError(
+                f"Cortex Scout binary checksum mismatch: expected {expected_sha}, got {digest}"
+            )
         _extract_binary(archive, target)
 
     target.chmod(target.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
@@ -183,6 +187,9 @@ def _download(url: str, dest: Path) -> None:
         with request.urlopen(url, timeout=120) as response, open(dest, "wb") as out:
             shutil.copyfileobj(response, out)
     except Exception as exc:
+        close = getattr(exc, "close", None)
+        if callable(close):
+            close()
         raise CortexScoutError(f"Failed to download Cortex Scout binary from {url}: {exc}") from exc
 
 

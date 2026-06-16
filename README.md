@@ -55,3 +55,6 @@ The default bundled download supports upstream release `v3.3.7` assets:
 
 If upstream has no binary for your platform, set `binary_path` to a compatible
 `cortex-scout` executable. Current upstream release has no Linux x64 asset.
+
+Custom release downloads must set `binary_sha256`; unchecked binaries are
+refused.
