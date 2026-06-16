@@ -4,3 +4,4 @@ bin/cortex-scout
 bin/cortex-scout.exe
 runtime/
 docs/superpowers/
+.build/

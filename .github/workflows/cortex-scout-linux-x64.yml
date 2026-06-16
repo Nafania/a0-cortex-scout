@@ -1,0 +1,48 @@
+name: Build Cortex Scout Linux x64
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Cortex Scout version, without leading v
+        required: true
+        default: "3.3.7"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: cortex-scout-linux-x64-${{ inputs.version }}-${{ runner.os }}
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Build package
+        run: bash scripts/build_cortex_scout_linux_x64.sh "${{ inputs.version }}"
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cortex-scout-${{ inputs.version }}-linux-x64
+          path: dist/*
+
+      - name: Upload release asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          TAG="cortex-scout-v${VERSION}-linux-x64"
+          NOTES="Linux x64 Cortex Scout ${VERSION} binary for Agent Zero plugin."
+          gh release view "$TAG" >/dev/null 2>&1 || \
+            gh release create "$TAG" --title "$TAG" --notes "$NOTES"
+          gh release upload "$TAG" dist/* --clobber
