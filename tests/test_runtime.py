@@ -8,6 +8,7 @@ import textwrap
 import threading
 import unittest
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 from unittest.mock import patch
 
 try:
@@ -106,7 +107,72 @@ class CortexScoutRuntimeTests(unittest.TestCase):
             })
 
             self.assertTrue(os.path.exists(os.path.join(bin_dir, "cortex-scout")))
+            self.assertTrue(os.path.exists(os.path.join(bin_dir, "cortex-scout.install.json")))
             self.assertEqual(CortexScoutClient(base_url, timeout_seconds=2).health()["status"], "healthy")
+
+    def test_find_binary_reuses_plugin_managed_local_binary(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            binary = write_fake_scout_binary(tmp, "cortex-scout")
+            asset = "cortex-scout-3.3.7-linux-x64.tar.gz"
+            archive_sha = runtime_helper.CHECKSUMS[asset]
+            runtime_helper._write_marker(
+                Path(binary),
+                "v3.3.7",
+                asset,
+                archive_sha,
+                runtime_helper._sha256(Path(binary)),
+            )
+
+            with patch.object(runtime_helper.platform, "system", return_value="Linux"):
+                with patch.object(runtime_helper.platform, "machine", return_value="x86_64"):
+                    self.assertEqual(runtime_helper._find_binary({"bin_dir": tmp}), Path(binary))
+
+    def test_find_binary_reinstalls_unmanaged_local_binary(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            binary = write_fake_scout_binary(tmp, "cortex-scout")
+            with patch.object(runtime_helper, "_install_binary", return_value=Path(binary)) as install:
+                with patch.object(runtime_helper.platform, "system", return_value="Linux"):
+                    with patch.object(runtime_helper.platform, "machine", return_value="x86_64"):
+                        self.assertEqual(runtime_helper._find_binary({"bin_dir": tmp}), Path(binary))
+
+            install.assert_called_once()
+
+    def test_find_binary_reinstalls_tampered_managed_local_binary(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            binary = Path(write_fake_scout_binary(tmp, "cortex-scout"))
+            asset = "cortex-scout-3.3.7-linux-x64.tar.gz"
+            archive_sha = runtime_helper.CHECKSUMS[asset]
+            runtime_helper._write_marker(
+                binary,
+                "v3.3.7",
+                asset,
+                archive_sha,
+                runtime_helper._sha256(binary),
+            )
+            with open(binary, "a", encoding="utf-8") as f:
+                f.write("\n# tampered\n")
+
+            with patch.object(runtime_helper, "_install_binary", return_value=binary) as install:
+                with patch.object(runtime_helper.platform, "system", return_value="Linux"):
+                    with patch.object(runtime_helper.platform, "machine", return_value="x86_64"):
+                        self.assertEqual(runtime_helper._find_binary({"bin_dir": tmp}), binary)
+
+            install.assert_called_once()
+
+    def test_find_binary_ignores_path_without_explicit_binary_path(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path_dir = os.path.join(tmp, "path")
+            os.mkdir(path_dir)
+            write_fake_scout_binary(path_dir, "cortex-scout")
+
+            with patch.dict(os.environ, {"PATH": path_dir}):
+                with self.assertRaises(CortexScoutError) as raised:
+                    runtime_helper._find_binary({
+                        "bin_dir": os.path.join(tmp, "bin"),
+                        "auto_install": False,
+                    })
+
+            self.assertIn("not plugin-managed", str(raised.exception))
 
     def test_ensure_running_restarts_dead_process(self):
         port = free_port()
@@ -153,6 +219,7 @@ class CortexScoutRuntimeTests(unittest.TestCase):
     def test_supported_default_assets_have_checksums(self):
         cases = [
             ("Linux", "aarch64", "cortex-scout-3.3.7-linux-arm64.tar.gz"),
+            ("Linux", "x86_64", "cortex-scout-3.3.7-linux-x64.tar.gz"),
             ("Darwin", "arm64", "cortex-scout-3.3.7-macos-arm64.tar.gz"),
             ("Windows", "AMD64", "cortex-scout-3.3.7-windows-x64.zip"),
             ("Windows", "ARM64", "cortex-scout-3.3.7-windows-arm64.zip"),
@@ -164,14 +231,25 @@ class CortexScoutRuntimeTests(unittest.TestCase):
                     with patch.object(runtime_helper.platform, "machine", return_value=machine):
                         self.assertEqual(runtime_helper._default_asset_name(), asset)
                 self.assertIn(asset, runtime_helper.CHECKSUMS)
+                self.assertRegex(runtime_helper.CHECKSUMS[asset], r"^[0-9a-f]{64}$")
 
-    def test_linux_x64_without_release_asset_fails_loudly(self):
+    def test_linux_x64_uses_plugin_release_asset(self):
         with patch.object(runtime_helper.platform, "system", return_value="Linux"):
             with patch.object(runtime_helper.platform, "machine", return_value="x86_64"):
-                with self.assertRaises(CortexScoutError) as raised:
-                    runtime_helper._default_asset_name()
+                asset = runtime_helper._default_asset_name()
 
-        self.assertIn("No Cortex Scout release binary", str(raised.exception))
+        self.assertEqual(asset, "cortex-scout-3.3.7-linux-x64.tar.gz")
+        self.assertEqual(
+            runtime_helper._download_url("v3.3.7", asset),
+            "https://github.com/Nafania/a0-cortex-scout/releases/download/"
+            "cortex-scout-v3.3.7-linux-x64/cortex-scout-3.3.7-linux-x64.tar.gz",
+        )
+        future_asset = "cortex-scout-3.3.8-linux-x64.tar.gz"
+        self.assertEqual(
+            runtime_helper._download_url("v3.3.8", future_asset),
+            "https://github.com/Nafania/a0-cortex-scout/releases/download/"
+            "cortex-scout-v3.3.8-linux-x64/cortex-scout-3.3.8-linux-x64.tar.gz",
+        )
 
     def test_ensure_running_reports_missing_binary(self):
         with self.assertRaises(CortexScoutError) as raised:

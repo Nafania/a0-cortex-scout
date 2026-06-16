@@ -45,4 +45,4 @@ jobs:
           NOTES="Linux x64 Cortex Scout ${VERSION} binary for Agent Zero plugin."
           gh release view "$TAG" >/dev/null 2>&1 || \
             gh release create "$TAG" --title "$TAG" --notes "$NOTES"
-          gh release upload "$TAG" dist/* --clobber
+          gh release upload "$TAG" dist/*

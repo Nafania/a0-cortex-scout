@@ -49,12 +49,17 @@ Example:
 The default bundled download supports upstream release `v3.3.7` assets:
 
 - Linux ARM64
+- Linux x64
 - macOS ARM64
 - Windows x64
 - Windows ARM64
 
-If upstream has no binary for your platform, set `binary_path` to a compatible
-`cortex-scout` executable. Current upstream release has no Linux x64 asset.
+Linux x64 is built by this plugin repo's GitHub Actions workflow because
+upstream currently does not publish that asset. Users do not build it locally.
+
+When Cortex Scout releases a new version, run the `Build Cortex Scout Linux x64`
+workflow for that version, then bump `release_version` and the SHA-256 checksum
+in the plugin.
 
 Custom release downloads must set `binary_sha256`; unchecked binaries are
 refused.
