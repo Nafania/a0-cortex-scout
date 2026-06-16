@@ -16,11 +16,12 @@ git clone --depth 1 --branch "$TAG" "$UPSTREAM" "$WORK/source"
 if command -v apt-get >/dev/null 2>&1; then
   sudo apt-get update
   sudo apt-get install -y --no-install-recommends \
-    protobuf-compiler libprotobuf-dev pkg-config ca-certificates cmake clang make perl
+    protobuf-compiler libprotobuf-dev pkg-config ca-certificates cmake clang make perl binutils
 fi
 
 cd "$WORK/source/mcp-server"
 cargo build --release --bin cortex-scout --bin cortex-scout-mcp
+strip target/release/cortex-scout target/release/cortex-scout-mcp
 
 PKG="cortex-scout-${VERSION#v}-linux-x64"
 PKG_DIR="$WORK/$PKG"
