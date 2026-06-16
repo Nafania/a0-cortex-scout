@@ -16,7 +16,7 @@ git clone --depth 1 --branch "$TAG" "$UPSTREAM" "$WORK/source"
 if command -v apt-get >/dev/null 2>&1; then
   sudo apt-get update
   sudo apt-get install -y --no-install-recommends \
-    protobuf-compiler pkg-config ca-certificates cmake clang make perl
+    protobuf-compiler libprotobuf-dev pkg-config ca-certificates cmake clang make perl
 fi
 
 cd "$WORK/source/mcp-server"
