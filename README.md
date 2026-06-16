@@ -1,6 +1,6 @@
 # Cortex Scout Agent Zero Plugin
 
-Agent Zero plugin that exposes a running [Cortex Scout](https://github.com/cortex-works/cortex-scout) HTTP server through one tool: `cortex_scout`.
+Agent Zero plugin that runs [Cortex Scout](https://github.com/cortex-works/cortex-scout) and exposes it through one tool: `cortex_scout`.
 
 ## Install
 
@@ -10,13 +10,13 @@ Copy this folder to:
 /a0/usr/plugins/cortex_scout
 ```
 
-Enable the plugin in Agent Zero, then start Cortex Scout separately:
+Enable the plugin in Agent Zero.
 
-```bash
-cortex-scout --port 5000
-```
+On first use the plugin downloads the matching Cortex Scout release binary into
+`bin/`, verifies its SHA-256 checksum, starts it on `127.0.0.1:5055`, and keeps
+it alive for the Agent Zero process.
 
-The default plugin URL is `http://127.0.0.1:5000`.
+No Docker Compose and no Rust build are required.
 
 ## Tool
 
@@ -46,4 +46,12 @@ Example:
 
 ## Notes
 
-This plugin does not install Cortex Scout, build Rust binaries, mutate Agent Zero MCP settings, or manage background services. That keeps plugin removal clean.
+The default bundled download supports upstream release `v3.3.7` assets:
+
+- Linux ARM64
+- macOS ARM64
+- Windows x64
+- Windows ARM64
+
+If upstream has no binary for your platform, set `binary_path` to a compatible
+`cortex-scout` executable. Current upstream release has no Linux x64 asset.

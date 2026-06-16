@@ -8,7 +8,7 @@
             <div>
                 <div class="section-title">Cortex Scout</div>
                 <div class="section-description">
-                    Connect Agent Zero to a running Cortex Scout HTTP server.
+                    Run Cortex Scout locally and expose it to Agent Zero.
                 </div>
 
                 <div class="field">
@@ -20,6 +20,42 @@
                     </div>
                     <div class="field-control">
                         <input type="text" x-model="config.base_url" />
+                    </div>
+                </div>
+
+                <div class="field">
+                    <div class="field-label">
+                        <div class="field-title">Auto Start</div>
+                        <div class="field-description">
+                            Start Cortex Scout when the tool is used.
+                        </div>
+                    </div>
+                    <div class="field-control">
+                        <input type="checkbox" x-model="config.auto_start" />
+                    </div>
+                </div>
+
+                <div class="field">
+                    <div class="field-label">
+                        <div class="field-title">Auto Install</div>
+                        <div class="field-description">
+                            Download the official binary into the plugin bin directory when missing.
+                        </div>
+                    </div>
+                    <div class="field-control">
+                        <input type="checkbox" x-model="config.auto_install" />
+                    </div>
+                </div>
+
+                <div class="field">
+                    <div class="field-label">
+                        <div class="field-title">Binary Path</div>
+                        <div class="field-description">
+                            Optional override for a custom cortex-scout executable.
+                        </div>
+                    </div>
+                    <div class="field-control">
+                        <input type="text" x-model="config.binary_path" />
                     </div>
                 </div>
 
@@ -37,6 +73,18 @@
 
                 <div class="field">
                     <div class="field-label">
+                        <div class="field-title">Startup Timeout Seconds</div>
+                        <div class="field-description">
+                            Time to wait for the local binary to become healthy.
+                        </div>
+                    </div>
+                    <div class="field-control">
+                        <input type="number" min="1" step="1" x-model.number="config.startup_timeout_seconds" />
+                    </div>
+                </div>
+
+                <div class="field">
+                    <div class="field-label">
                         <div class="field-title">Max Response Chars</div>
                         <div class="field-description">
                             Maximum response size returned to the agent.
@@ -44,6 +92,18 @@
                     </div>
                     <div class="field-control">
                         <input type="number" min="1000" step="1000" x-model.number="config.max_response_chars" />
+                    </div>
+                </div>
+
+                <div class="field">
+                    <div class="field-label">
+                        <div class="field-title">Release Version</div>
+                        <div class="field-description">
+                            Cortex Scout release used for automatic binary install.
+                        </div>
+                    </div>
+                    <div class="field-control">
+                        <input type="text" x-model="config.release_version" />
                     </div>
                 </div>
             </div>
